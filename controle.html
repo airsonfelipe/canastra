@@ -31,7 +31,7 @@
         // Recupera o placar salvo no celular, ou cria um novo zerado
         let placar = JSON.parse(localStorage.getItem('placar-pife')) || { Felipe: 0, Juliana: 0, Nair: 0, Sila: 0 };
         
-        const client = mqtt.connect('wss://broker.emqx.io:8083/mqtt');
+        const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         const canalSync = 'placar-pife-felipe-familia/sync';
         const canalPedido = 'placar-pife-felipe-familia/pedido';
 
