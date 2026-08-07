@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controle do Pife</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; text-align: center; }
+        h2 { color: #333; margin-bottom: 20px; }
+        .jogador { background: white; margin: 10px auto; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; }
+        .nome { font-size: 1.2rem; font-weight: bold; width: 80px; text-align: left; }
+        .pontos { font-size: 1.5rem; font-weight: bold; color: #2c3e50; width: 40px; }
+        button { font-size: 1.5rem; width: 45px; height: 45px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
+        button:active { transform: scale(0.9); }
+        .btn-mais { background-color: #27ae60; }
+        .btn-menos { background-color: #c0392b; }
+        .reset { background-color: #34495e; color: white; border: none; padding: 15px; width: 100%; max-width: 400px; border-radius: 10px; font-size: 1.2rem; margin-top: 30px; cursor: pointer; }
+        #status { margin-top: 15px; font-size: 0.9rem; color: #888; }
+    </style>
+</head>
+<body>
+
+    <h2>📱 Controle</h2>
+    
+    <div id="jogadores"></div>
+    <button class="reset" onclick="zerarPlacar()">🔄 Zerar Placar de Todos</button>
+    <div id="status">Conectando...</div>
+
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script>
+        // Recupera o placar salvo no celular, ou cria um novo zerado
+        let placar = JSON.parse(localStorage.getItem('placar-pife')) || { Felipe: 0, Juliana: 0, Nair: 0, Sila: 0 };
+        
+        const client = mqtt.connect('wss://broker.emqx.io:8083/mqtt');
+        const canalSync = 'placar-pife-felipe-familia/sync';
+        const canalPedido = 'placar-pife-felipe-familia/pedido';
+
+        client.on('connect', () => {
+            document.getElementById('status').innerText = "🟢 Conectado ao Notebook";
+            client.subscribe(canalPedido);
+            atualizarTelaEEnviar(); // Envia o placar salvo assim que conectar
+        });
+
+        // Se o notebook abrir/atualizar a página, ele pede o placar, e o celular envia
+        client.on('message', (topic, message) => {
+            if (topic === canalPedido) {
+                atualizarTelaEEnviar();
+            }
+        });
+
+        function alterarPonto(nome, valor) {
+            placar[nome] += valor;
+            atualizarTelaEEnviar();
+        }
+
+        function zerarPlacar() {
+            if(confirm("Tem certeza que deseja zerar o placar de todo mundo?")) {
+                placar = { Felipe: 0, Juliana: 0, Nair: 0, Sila: 0 };
+                atualizarTelaEEnviar();
+            }
+        }
+
+        function atualizarTelaEEnviar() {
+            // 1. Salva no cache do celular
+            localStorage.setItem('placar-pife', JSON.stringify(placar));
+            
+            // 2. Envia para a internet (que cai no notebook)
+            client.publish(canalSync, JSON.stringify(placar));
+            
+            // 3. Atualiza a tela do próprio celular
+            const div = document.getElementById('jogadores');
+            div.innerHTML = '';
+            for (const [nome, pontos] of Object.entries(placar)) {
+                div.innerHTML += `
+                    <div class="jogador">
+                        <div class="nome">${nome}</div>
+                        <button class="btn-menos" onclick="alterarPonto('${nome}', -1)">-</button>
+                        <div class="pontos">${pontos}</div>
+                        <button class="btn-mais" onclick="alterarPonto('${nome}', 1)">+</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Renderiza a tela pela primeira vez
+        atualizarTelaEEnviar();
+    </script>
+</body>
+</html>
