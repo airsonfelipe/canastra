@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placar de Pife</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: white; text-align: center; margin: 0; padding: 40px; }
+        h1 { color: #4CAF50; font-size: 3rem; margin-bottom: 50px; }
+        .grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .card { background-color: #1e1e1e; border-radius: 15px; padding: 30px; width: 200px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .nome { font-size: 2rem; color: #bbb; margin-bottom: 20px; font-weight: bold; }
+        .pontos { font-size: 5rem; color: #ffeb3b; font-weight: bold; }
+        #status { margin-top: 50px; color: #888; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+    <h1>🃏 Placar do Pife</h1>
+    
+    <div class="grid">
+        <div class="card"><div class="nome">Felipe</div><div class="pontos" id="pts-Felipe">0</div></div>
+        <div class="card"><div class="nome">Juliana</div><div class="pontos" id="pts-Juliana">0</div></div>
+        <div class="card"><div class="nome">Nair</div><div class="pontos" id="pts-Nair">0</div></div>
+        <div class="card"><div class="nome">Sila</div><div class="pontos" id="pts-Sila">0</div></div>
+    </div>
+
+    <div id="status">Conectando ao servidor...</div>
+
+    <!-- Biblioteca MQTT para receber mensagens -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script>
+        // Conecta ao servidor público gratuito
+        const client = mqtt.connect('wss://broker.emqx.io:8083/mqtt');
+        const canalSync = 'placar-pife-felipe-familia/sync';
+        const canalPedido = 'placar-pife-felipe-familia/pedido';
+
+        client.on('connect', () => {
+            document.getElementById('status').innerText = "🟢 Conectado! Aguardando o celular...";
+            client.subscribe(canalSync);
+            // Assim que o notebook abre, ele grita pedindo o placar para o celular
+            client.publish(canalPedido, 'notebook_abriu');
+        });
+
+        client.on('message', (topic, message) => {
+            if (topic === canalSync) {
+                const placar = JSON.parse(message.toString());
+                document.getElementById('pts-Felipe').innerText = placar.Felipe;
+                document.getElementById('pts-Juliana').innerText = placar.Juliana;
+                document.getElementById('pts-Nair').innerText = placar.Nair;
+                document.getElementById('pts-Sila').innerText = placar.Sila;
+                document.getElementById('status').innerText = "🟢 Placar Sincronizado!";
+            }
+        });
+    </script>
+</body>
+</html>
