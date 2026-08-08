@@ -8,9 +8,19 @@
         body { font-family: Arial, sans-serif; background-color: #121212; color: white; text-align: center; margin: 0; padding: 40px; }
         h1 { color: #4CAF50; font-size: 3rem; margin-bottom: 50px; }
         .grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .card { background-color: #1e1e1e; border-radius: 15px; padding: 30px; width: 200px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .nome { font-size: 2rem; color: #bbb; margin-bottom: 20px; font-weight: bold; }
-        .pontos { font-size: 5rem; color: #ffeb3b; font-weight: bold; }
+        .card { background-color: #1e1e1e; border-radius: 15px; padding: 30px; width: 200px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; }
+        .nome { font-size: 2rem; color: #bbb; margin-bottom: 15px; font-weight: bold; }
+        .pontos { font-size: 5rem; color: #ffeb3b; font-weight: bold; margin-bottom: 20px; }
+        
+        /* Estilo da foto para ocupar a largura do card e ficar redondinha/bonita */
+        .foto {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #444;
+        }
+
         #status { margin-top: 50px; color: #888; font-size: 1rem; }
     </style>
 </head>
@@ -19,10 +29,26 @@
     <h1>🃏 Placar do Pife</h1>
     
     <div class="grid">
-        <div class="card"><div class="nome">Felipe</div><div class="pontos" id="pts-Felipe">0</div></div>
-        <div class="card"><div class="nome">Juliana</div><div class="pontos" id="pts-Juliana">0</div></div>
-        <div class="card"><div class="nome">Nair</div><div class="pontos" id="pts-Nair">0</div></div>
-        <div class="card"><div class="nome">Sila</div><div class="pontos" id="pts-Sila">0</div></div>
+        <div class="card">
+            <div class="nome">Felipe</div>
+            <div class="pontos" id="pts-Felipe">0</div>
+            <img src="felipe.jpg" alt="Felipe" class="foto">
+        </div>
+        <div class="card">
+            <div class="nome">Juliana</div>
+            <div class="pontos" id="pts-Juliana">0</div>
+            <img src="juliana.jpg" alt="Juliana" class="foto">
+        </div>
+        <div class="card">
+            <div class="nome">Nair</div>
+            <div class="pontos" id="pts-Nair">0</div>
+            <img src="nair.jpg" alt="Nair" class="foto">
+        </div>
+        <div class="card">
+            <div class="nome">Sila</div>
+            <div class="pontos" id="pts-Sila">0</div>
+            <img src="sila.jpg" alt="Sila" class="foto">
+        </div>
     </div>
 
     <div id="status">Conectando ao servidor...</div>
@@ -30,7 +56,7 @@
     <!-- Biblioteca MQTT para receber mensagens -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        // Conecta ao servidor público gratuito
+        // Conecta ao servidor público seguro (porta 8084 para GitHub Pages)
         const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
         const canalSync = 'placar-pife-felipe-familia/sync';
         const canalPedido = 'placar-pife-felipe-familia/pedido';
